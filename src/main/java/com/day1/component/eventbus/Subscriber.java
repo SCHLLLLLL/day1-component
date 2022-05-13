@@ -44,6 +44,7 @@ public class Subscriber {
                 double executionTime = (System.currentTimeMillis() - start) / 1000d;
 
 //                log.info("eventBus消费完成 eventId {} 耗时 {}s", eventId, executionTime);
+                System.out.println("eventBus消费完成 eventId " + eventId + " 耗时 " + executionTime + " s");
                 //监控
                 monitor(executionTime, eventId);
                 if (returnObj instanceof Boolean) {
@@ -69,11 +70,10 @@ public class Subscriber {
         });
 
         try {
-
             Day1Subscribe day1Subscribe = method.getAnnotation(Day1Subscribe.class);
-
             return booleanFuture.get(day1Subscribe.maxExecuteTime(), TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            e.printStackTrace();
 //            log.error("执行失败 ", e);
             return false;
         }
@@ -81,8 +81,9 @@ public class Subscriber {
 
     Object invokeSubscriberMethod(Object event) throws InvocationTargetException {
         try {
-            return method.invoke(event, checkNotNull(event));
+            return method.invoke(target, checkNotNull(event));
         } catch (IllegalArgumentException e) {
+            System.out.println(e);
             throw new Error("Method rejected target/argument: " + event, e);
         } catch (IllegalAccessException e) {
             throw new Error("Method became inaccessible: " + event, e);

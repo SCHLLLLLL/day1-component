@@ -1,7 +1,9 @@
 package com.day1.component.eventbus;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.eventbus.SubscriberExceptionHandler;
 
+import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -44,6 +46,48 @@ public class EventBus {
      */
     final ExecutorService executor() {
         return executor;
+    }
+
+    /**
+     * Registers all subscriber methods on {@code object} to receive events.
+     *
+     * @param object object whose subscriber methods should be registered.
+     */
+    public void register(Object object) {
+        subscribers.register(object);
+    }
+
+    public boolean post(Object event) {
+        return post(event, event.hashCode() + "", 0);
+    }
+
+    /**
+     * 都执行成功才是成功
+     */
+    public boolean post(Object event, String eventId, int reconsumeTimes) {
+
+        Iterator<Subscriber> eventSubscribers = subscribers.getSubscribers(event);
+
+        //需要删除掉已经成功的 方法
+        if (reconsumeTimes > 0) {
+            /**
+             * 过滤掉已经成功的 method 只重试未成功的
+             */
+//            eventSubscribers = exceptionHandler.filterSuccessMethod(eventId, eventSubscribers);
+
+        }
+
+        if (eventSubscribers.hasNext()) {
+            return dispatcher.dispatch(event, eventId, eventSubscribers);
+        }
+
+        return true;
+    }
+
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this).addValue(identifier).toString();
     }
 }
 
